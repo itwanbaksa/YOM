@@ -1,5 +1,6 @@
 package com.kaist.sep.yom;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -18,27 +19,47 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 
 public class LoadImageActivity extends AppCompatActivity {
-    private GridView gv_all;
     private GridView gv_nearby;
     private Context mContext;
+    final int REQ_CODE_SELECT_IMAGE_FROM_GALLAERY=1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_load_image);
 
-        gv_all = (GridView)findViewById(R.id.gridview_image_all);
         gv_nearby = (GridView)findViewById(R.id.gridview_image_nearby);
         final ImageAdapter ia = new ImageAdapter(this);
-        gv_all.setAdapter(ia);
         gv_nearby.setAdapter(ia);
 
-
-        gv_all.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        gv_nearby.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView parent, View v, int position, long id) {
                 ia.callImageViewer(position);
             }
         });
+    }
+
+    public void onButtonLoadGallery(View v) {
+
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
+        intent.setData(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQ_CODE_SELECT_IMAGE_FROM_GALLAERY);
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == REQ_CODE_SELECT_IMAGE_FROM_GALLAERY)
+        {
+            if(resultCode== Activity.RESULT_OK)
+            {
+                /*Toast.makeText(getBaseContext(), "사진을 가져왔습니다",Toast.LENGTH_SHORT).show();
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra("result", 1);
+                setResult(Activity.RESULT_OK,returnIntent);
+                */
+                finish();
+            }
+        }
     }
 
     public class ImageAdapter extends BaseAdapter {
@@ -83,7 +104,8 @@ public class LoadImageActivity extends AppCompatActivity {
             ImageView imageView;
             if (convertView == null){
                 imageView = new ImageView(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams(95, 95));
+                //imageView.setLayoutParams(new GridView.LayoutParams(GridLayout.LayoutParams.MATCH_PARENT, GridLayout.LayoutParams.MATCH_PARENT));
+                imageView.setLayoutParams(new GridView.LayoutParams(500, 500));
                 imageView.setAdjustViewBounds(false);
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 imageView.setPadding(2, 2, 2, 2);
@@ -91,10 +113,10 @@ public class LoadImageActivity extends AppCompatActivity {
                 imageView = (ImageView) convertView;
             }
             BitmapFactory.Options bo = new BitmapFactory.Options();
-            bo.inSampleSize = 8;
+            bo.inSampleSize = 32;
             Bitmap bmp = BitmapFactory.decodeFile(thumbsDataList.get(position), bo);
-            Bitmap resized = Bitmap.createScaledBitmap(bmp, 95, 95, true);
-            imageView.setImageBitmap(resized);
+            //Bitmap resized = Bitmap.createScaledBitmap(bmp, 150, 150, true);
+            imageView.setImageBitmap(bmp);
 
             return imageView;
         }
@@ -106,7 +128,7 @@ public class LoadImageActivity extends AppCompatActivity {
                     MediaStore.Images.Media.SIZE};
 
             Cursor imageCursor = managedQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    proj, null, null, null);
+                    proj, null, null, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
 
             if (imageCursor != null && imageCursor.moveToFirst()){
                 String title;
@@ -131,9 +153,11 @@ public class LoadImageActivity extends AppCompatActivity {
                         thumbsIDs.add(thumbsID);
                         thumbsDatas.add(thumbsData);
                     }
+                    if (num == 10)
+                        break;
                 }while (imageCursor.moveToNext());
             }
-            imageCursor.close();
+            //imageCursor.close();
             return;
         }
 
@@ -152,7 +176,7 @@ public class LoadImageActivity extends AppCompatActivity {
                     imageDataPath = imageCursor.getString(imgData);
                 }
             }
-            imageCursor.close();
+            //imageCursor.close();
             return imageDataPath;
         }
     }
