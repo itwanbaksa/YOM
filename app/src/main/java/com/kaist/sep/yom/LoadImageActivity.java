@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -44,21 +46,23 @@ public class LoadImageActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
         intent.setData(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, REQ_CODE_SELECT_IMAGE_FROM_GALLAERY);
+        startActivityForResult(intent, 0);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == REQ_CODE_SELECT_IMAGE_FROM_GALLAERY)
+        if(resultCode== Activity.RESULT_OK)
         {
-            if(resultCode== Activity.RESULT_OK)
-            {
-                /*Toast.makeText(getBaseContext(), "사진을 가져왔습니다",Toast.LENGTH_SHORT).show();
-                Intent returnIntent = new Intent();
-                returnIntent.putExtra("result", 1);
-                setResult(Activity.RESULT_OK,returnIntent);
-                */
-                finish();
-            }
+            Uri uri  = data.getData();
+            Intent returnIntent = new Intent();
+            returnIntent.setDataAndType(uri, "image/*");
+            setResult(Activity.RESULT_OK,returnIntent);
+
+            finish();
+        }
+        else if (resultCode == RESULT_CANCELED) {
+            Toast.makeText(getBaseContext(), "선택하지 않음", Toast.LENGTH_SHORT).show();
+            Intent returnIntent = new Intent();
+            setResult(Activity.RESULT_CANCELED);
         }
     }
 

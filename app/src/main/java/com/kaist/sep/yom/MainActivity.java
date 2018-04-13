@@ -1,5 +1,6 @@
 package com.kaist.sep.yom;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -28,12 +29,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQ_CODE_OVERLAY) {
-            //Toast.makeText(this, "겹쳐찍기", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, CameraOverlayActivity.class);
-            startActivityForResult(intent, 0);
+            if (resultCode != Activity.RESULT_CANCELED) {
+                String image_uri = data.getData().toString();
+                Intent intent = new Intent(this, CameraOverlayActivity.class);
+                intent.putExtra("uri", image_uri);
+                startActivityForResult(intent, 0);
+            }
         }
-        else {
-            //Toast.makeText(this, "다시찍기", Toast.LENGTH_SHORT).show();
+        if (requestCode == REQ_CODE_REPHOTO) {
+            if (resultCode != Activity.RESULT_CANCELED) {
+                Intent intent = new Intent(this, CameraRephotoActivity.class);
+                startActivityForResult(intent, 0);
+            }
         }
     }
 }
