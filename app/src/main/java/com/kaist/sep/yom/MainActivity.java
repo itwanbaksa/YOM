@@ -1,6 +1,5 @@
 package com.kaist.sep.yom;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -18,29 +17,20 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonOverlayClicked(View v) {
         Intent intent = new Intent(this, LoadImageActivity.class);
-        startActivityForResult(intent, REQ_CODE_OVERLAY);
+        intent.putExtra("reqid", REQ_CODE_OVERLAY);
+        startActivity(intent);
     }
 
     public void onButtonRephotoClicked(View v) {
         Intent intent = new Intent(this, LoadImageActivity.class);
-        startActivityForResult(intent, REQ_CODE_REPHOTO);
+        intent.putExtra("reqid", REQ_CODE_REPHOTO);
+        startActivity(intent);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQ_CODE_OVERLAY) {
-            if (resultCode != Activity.RESULT_CANCELED) {
-                String image_uri = data.getData().toString();
-                Intent intent = new Intent(this, CameraOverlayActivity.class);
-                intent.putExtra("uri", image_uri);
-                startActivityForResult(intent, 0);
-            }
-        }
-        if (requestCode == REQ_CODE_REPHOTO) {
-            if (resultCode != Activity.RESULT_CANCELED) {
-                Intent intent = new Intent(this, CameraRephotoActivity.class);
-                startActivityForResult(intent, 0);
-            }
+    if (requestCode == RESULT_CANCELED) {
+        //TODO ::
         }
     }
 }
