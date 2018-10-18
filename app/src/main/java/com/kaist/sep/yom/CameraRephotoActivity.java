@@ -122,7 +122,7 @@ public class CameraRephotoActivity extends Activity implements SurfaceHolder.Cal
         FileOutputStream os = null;
         try{
             os = new FileOutputStream(file);
-            resultImage.compress(Bitmap.CompressFormat.PNG, 100, os);   //비트맵을 PNG파일로 변환
+            resultImage.compress(Bitmap.CompressFormat.JPEG, 100, os);   //비트맵을 PNG파일로 변환
             os.close();
         }catch (IOException e){
             e.printStackTrace();

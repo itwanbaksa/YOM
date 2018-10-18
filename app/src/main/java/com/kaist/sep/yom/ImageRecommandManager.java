@@ -9,7 +9,6 @@ import android.location.LocationManager;
 import android.media.ExifInterface;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 
 /**
  * Created by 조준완 on 2018-04-30.
@@ -100,9 +99,9 @@ public class ImageRecommandManager {
     public static float calDistance() {
         float dist = old.distanceTo(now);
 
-        Log.e("[wan]", "old lat : " + old.getLatitude() + ", old long :" + old.getLongitude());
-        Log.e("[wan]", "now lat : " + now.getLatitude() + ", old long :" + now.getLongitude());
-        Log.e("[wan]", "dist : " + dist);
+        //Log.e("[wan]", "old lat : " + old.getLatitude() + ", old long :" + old.getLongitude());
+        //Log.e("[wan]", "now lat : " + now.getLatitude() + ", old long :" + now.getLongitude());
+        //Log.e("[wan]", "dist : " + dist);
 
         return dist;
     }

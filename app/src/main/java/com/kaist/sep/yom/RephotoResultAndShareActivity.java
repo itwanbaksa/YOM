@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
@@ -46,6 +48,11 @@ public class RephotoResultAndShareActivity extends Activity {
 
         imageView_old.setScaleType(ImageView.ScaleType.CENTER_CROP);
         imageView_now.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+        imageView_old.setColorFilter(f);
 
 
         try {
@@ -99,7 +106,7 @@ public class RephotoResultAndShareActivity extends Activity {
         FileOutputStream os = null;
         try{
             os = new FileOutputStream(resultFile);
-            resultImage.compress(Bitmap.CompressFormat.PNG, 100, os);   //비트맵을 PNG파일로 변환
+            resultImage.compress(Bitmap.CompressFormat.JPEG, 100, os);   //비트맵을 PNG파일로 변환
             os.close();
         }catch (IOException e){
             e.printStackTrace();

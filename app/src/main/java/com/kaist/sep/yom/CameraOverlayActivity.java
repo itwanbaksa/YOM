@@ -7,6 +7,9 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -17,6 +20,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -51,6 +55,8 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
     PointF start = new PointF();
     PointF mid = new PointF();
     float oldDist = 1f;
+
+    YuvImage yuv_image;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +109,7 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
                         break;
                 }
                 imageView.setImageMatrix(matrix);
-                resizedImage = Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), matrix, false);
+                //resizedImage = Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), matrix, false);
                 return true;
             }
         });
@@ -120,7 +126,14 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
             image = rotate(image, exifDegree);
 
             // 변환된 이미지 사용
+            ColorMatrix cm = new ColorMatrix();
+            cm.setSaturation(0);
+            ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+            imageView.setColorFilter(f);
+            image = addWhiteBorder(image, 100);
+
             imageView.setImageBitmap(image);
+
         }
         catch(Exception e) {}
 
@@ -129,19 +142,34 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
         init();
     }
 
+    private Bitmap addWhiteBorder(Bitmap bmp, int borderSize) {
+        Bitmap bmpWithBorder = Bitmap.createBitmap(bmp.getWidth() + borderSize * 2, bmp.getHeight() + borderSize * 2, bmp.getConfig());
+        Canvas canvas = new Canvas(bmpWithBorder);
+        canvas.drawColor(Color.WHITE);
+        canvas.drawBitmap(bmp, borderSize, borderSize, null);
+        return bmpWithBorder;
+    }
+
     public void onImageButtonCaptureClicked(View v) {
+        if (makePreviewImage() == false)
+            return;
+
+        Log.e("wan", "onImageButtonCaptureClicked -1");
         File screenShot = ScreenShot();
+        Log.e("wan", "onImageButtonCaptureClicked -2");
         if(screenShot!=null){
             //갤러리에 추가
             sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(screenShot)));
         }
-
+        Log.e("wan", "send OverlayResultAndShareActivity!!!");
         //OverlayResultAndShareActivity에 전달
         Uri uri = Uri.fromFile(screenShot);
         Intent intent = new Intent(this, OverlayResultAndShareActivity.class);
         intent.putExtra("uri", uri);
         startActivityForResult(intent, 0);
+        Log.e("wan", "sent!!!");
         finish();
+
     }
 
     public void onImageButtonRotateClicked(View v) {
@@ -157,11 +185,9 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
         imageView.buildDrawingCache();
 
         surfaceDestroyed(null); //Thread 잠시 멈춤(pause)
-
         Bitmap resultImage = Bitmap.createBitmap(view.getWidth(), view.getHeight(), null);
         Canvas canvas = new Canvas(resultImage);
         canvas.drawBitmap(shareBitmap, new Matrix(), null);
-
         Bitmap bm = imageView.getDrawingCache();
         canvas.drawBitmap(bm, new Matrix(), null);
 
@@ -171,13 +197,12 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
         FileOutputStream os = null;
         try{
             os = new FileOutputStream(file);
-            resultImage.compress(Bitmap.CompressFormat.PNG, 100, os);   //비트맵을 PNG파일로 변환
+            resultImage.compress(Bitmap.CompressFormat.JPEG, 80, os);   //비트맵을 JPEG파일로 변환
             os.close();
         }catch (IOException e){
             e.printStackTrace();
             return null;
         }
-
         view.setDrawingCacheEnabled(false);
         //surfaceCreated(null); //Thread 재개(resume)
         return file;
@@ -197,6 +222,7 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
     public void surfaceCreated(SurfaceHolder holder) {
         try {
             if (mCamera != null) {
+                mCamera.setPreviewCallback(previewCallback);
                 mCamera.setPreviewDisplay(holder);
                 mCamera.startPreview();
             }
@@ -206,6 +232,7 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        Log.e("wan", "surfaceChanged!!!");
         if (mCameraHolder.getSurface() == null) {
             return;
         }
@@ -215,6 +242,13 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
 
         try {
             mCamera.stopPreview();
+        } catch (Exception e) {
+        }
+
+        try {
+            mCamera.setPreviewDisplay(mCameraHolder);
+            mCamera.setPreviewCallback(previewCallback);
+            mCamera.startPreview();
         } catch (Exception e) {
         }
 
@@ -236,31 +270,35 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
         }
         int result  = (90 - degrees + 360) % 360;
         mCamera.setDisplayOrientation(result);
+    }
 
-        try {
-            mCamera.setPreviewDisplay(mCameraHolder);
-            mCamera.setPreviewCallback(new Camera.PreviewCallback() {
-                public void onPreviewFrame(byte[] data, Camera camera) {
-                    Camera.Parameters params = mCamera.getParameters();
-                    int w = params.getPreviewSize().width;
-                    int h = params.getPreviewSize().height;
+    Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
+        public void onPreviewFrame(byte[] data, Camera camera) {
+            Camera.Parameters params = mCamera.getParameters();
+            int w = params.getPreviewSize().width;
+            int h = params.getPreviewSize().height;
 
-                    int format = params.getPreviewFormat();
-                    YuvImage image = new YuvImage(data, format, w, h, null);
-
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    Rect area = new Rect(0, 0, w, h);
-                    image.compressToJpeg(area, 100, out);
-                    shareBitmap = BitmapFactory.decodeByteArray(out.toByteArray(), 0, out.size()).copy(Bitmap.Config.ARGB_8888, true);
-                }
-            });
-            mCamera.startPreview();
-        } catch (Exception e) {
+            int format = params.getPreviewFormat();
+            yuv_image = new YuvImage(data, format, w, h, null);
         }
+    };
+
+    public boolean makePreviewImage() {
+        Camera.Parameters params = mCamera.getParameters();
+        int w = params.getPreviewSize().width;
+        int h = params.getPreviewSize().height;
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Rect area = new Rect(0, 0, w, h);
+        yuv_image.compressToJpeg(area, 80, out);
+
+        shareBitmap = BitmapFactory.decodeByteArray(out.toByteArray(), 0, out.size()).copy(Bitmap.Config.ARGB_8888, true);
+        return (shareBitmap != null);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.e("wan", "surfaceDestroyed!!!");
         if (mCamera != null) {
             mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
@@ -274,7 +312,6 @@ public class CameraOverlayActivity extends Activity implements SurfaceHolder.Cal
         float y = event.getY(0) - event.getY(1);
         return (float)Math.sqrt(x * x + y * y);
     }
-
 
     private void midPoint(PointF point, MotionEvent event) {
         float x = 2*imageView.getLeft() + event.getX(0) + event.getX(1);

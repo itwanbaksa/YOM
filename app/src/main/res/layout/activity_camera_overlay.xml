@@ -26,20 +26,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/surfaceView_overlay"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/surfaceView_overlay"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <ImageButton
-        android:id="@+id/imageButton_rotate"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:onClick="onImageButtonRotateClicked"
-        android:src="@android:drawable/ic_menu_rotate"
-        app:layout_constraintBottom_toTopOf="@+id/imageButton_capture"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.902"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.139" />
+        app:layout_constraintVertical_bias="0.0"/>
 
     <ImageButton
         android:id="@+id/imageButton_capture"
@@ -53,18 +40,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.498" />
-
-    <ImageButton
-        android:id="@+id/imageButton_up"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:onClick="onImageButtonUpClicked"
-        android:src="@android:drawable/arrow_up_float"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.902"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageButton_capture"
-        app:layout_constraintVertical_bias="0.767" />
 
 </android.support.constraint.ConstraintLayout>

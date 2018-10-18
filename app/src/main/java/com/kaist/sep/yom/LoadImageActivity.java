@@ -116,8 +116,8 @@ public class LoadImageActivity extends AppCompatActivity {
             int id = c.getInt( c.getColumnIndex( "_id" ) );
             Uri uri = ContentUris.withAppendedId( MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id );
 
-            Log.e("[wan]", "imgPath : " + imgPath);
-            Log.e("[wan]", "uri : " + uri.toString());
+            //Log.e("[wan]", "imgPath : " + imgPath);
+            //Log.e("[wan]", "uri : " + uri.toString());
 
 
             Intent intent;
@@ -188,8 +188,11 @@ public class LoadImageActivity extends AppCompatActivity {
                     MediaStore.Images.Media.DISPLAY_NAME,
                     };
 
+            String selection = MediaStore.Audio.Media.DATA + " like ? " ;
+            String[] whereVal = new String[]{"%/storage/emulated/%"};
+
             Cursor imageCursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    proj, null, null, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
+                    proj, selection, whereVal, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
 
             if (imageCursor != null && imageCursor.moveToFirst()) {
                 String thumbsData;
@@ -201,12 +204,12 @@ public class LoadImageActivity extends AppCompatActivity {
                 int thumbsIDCol = imageCursor.getColumnIndex(MediaStore.Images.Media._ID);
                 int thumbsImageIDCol = imageCursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME);
 
-                int num=0;
                 do {
-                    boolean skip=false;
                     thumbsData = imageCursor.getString(thumbsDataCol);
                     thumbsID = imageCursor.getString(thumbsIDCol);
                     thumbsImageID = imageCursor.getString(thumbsImageIDCol);
+
+                    //Log.e("[wan]", "thumbsData : " + thumbsData + ", thumbsID :" + thumbsID + ", thumbsImageID : " + thumbsImageID);
 
                     //TODO :: 근처 사진만 가져오기!!!
                     if (mRecommandManager.isNearby(thumbsData)) {
@@ -216,9 +219,6 @@ public class LoadImageActivity extends AppCompatActivity {
                             //Log.e("[wan]", "add!!!");
                         }
                     }
-
-                    if (num == 10)
-                        break;
                 }while (imageCursor.moveToNext());
             }
             //imageCursor.close();
